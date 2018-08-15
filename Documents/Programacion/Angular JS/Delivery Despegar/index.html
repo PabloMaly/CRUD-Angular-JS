@@ -1,0 +1,299 @@
+<!doctype html>
+<html>
+
+	<head>
+		<title>Lista de compras com AngularJS</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no">
+		<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
+		<!--<link rel="stylesheet" href="css/bootstrap.css">-->
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+		<link rel="stylesheet" href="assets/css/jquery.timepicker.css" />
+		<link rel="stylesheet" href="assets/css/toastr.css">
+		<link rel="stylesheet" href="assets/css/application.css">
+		<link rel="stylesheet" href="assets/js/boostrap-time/css/bootstrap-material-datetimepicker.css" />
+	</head>
+
+	<body ng-app="myModule">
+		<div class="container" ng-controller="ListaComprasController" ng-cloak>
+			<nav class="navbar fixed-top navbar-light bg-nav">
+				<div class="row">
+					<div class="col-md-4">
+						Delivery Online
+					</div>
+					<div class="col-md-8">
+						<img class="float-right" src="https://upload.wikimedia.org/wikipedia/commons/3/34/Despegar_logo.png" width="50" height="auto">
+					</div>
+				</div>
+			</nav>
+			<br><br><br>
+			<div class="col-md-12">
+				<div class="row">
+					<div class="col-md-8">
+						<h1>Lista Delivery</h1>
+					</div>
+					<div class="col-md-4 text-center">
+						<button ng-hide="edit" class="btn btn-despegar float-right scroll" ng-click="addItem()">
+                  <i class="fa fa-plus-square-o" aria-hidden="true"></i> Crear nuevo delivery
+                  </button>
+					</div>
+				</div>
+				<hr>
+			</div>
+			<div class="col-md-12 box-grey">
+				<div class="row">
+					<div class="col-md-3 title-filters text-center">
+						<i class="fa fa-filter" aria-hidden="true" style="font-size: 15px"></i>
+						<b>Filtros</b>
+					</div>
+					<div class="col-md-9 text-center">
+						<div class=" row">
+							<div class="col-md-6">
+								Nombre <input id="orderIdFilter" type="text"
+                                           class="form-control order-search-box" placeholder="Ingrese un nombre"
+                                           ng-change="gridActions.filter()" ng-model="name"
+                                           filter-by="nombre" grid-id="grid1" filter-type="text" style="display: inline;width: auto;">
+							</div>
+							<div class="col-md-6">
+								Dirrecion <input id="orderIdFilter" type="text"
+                                           class="form-control order-search-box" placeholder="Ingrese una dirrecion"
+                                           ng-change="gridActions.filter()" ng-model="dirreccion"
+                                           filter-by="dirreccion" grid-id="grid1" filter-type="text" style="display: inline;width: auto;">
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<br>
+			<div class="col-md-5"></div>
+			<div class="row">
+				<div class="col-md-12"  external-scopes="states" grid-data grid-options="gridOptions" grid-actions="gridActions">
+					<table id="lista-compras" class="table table-striped">
+						<thead>
+							<tr>
+								<th sortable="nombre" class="sortable">Nombre</th>
+								<th sortable="dirreccion" class="sortable">Dirreccion</th>
+								<th sortable="telefono" class="sortable">Telefono</th>
+								<th width="15%"> </th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr grid-item>
+								<td ng-bind="item.nombre"></td>
+								<td ng-bind="item.dirreccion"></td>
+								<td ng-bind="item.telefono"></td>
+								<td>
+									<button class="btn btn-despegar btn-small scroll" ng-click="editarItem($index)">
+                        <i class="fa fa-pencil-square-o" aria-hidden="true"></i>
+                        </button>
+									<button class="btn btn-danger btn-small" 
+									ng-confirm-click="Desea eliminar el siguiente item?"
+									confirmed-click="deleteItem($index)">
+                        <i class="fa fa-trash-o" aria-hidden="true"></i>
+                        </button>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+					<div class="row">
+						<div class="col-md-7">
+							<div class="form-group items-per-page">
+								<label for="itemsOnPageSelect1">Items por página:</label>
+								<select id="itemsOnPageSelect1" class="form-control input-sm" ng-init="paginationOptions.itemsPerPage = '5'" ng-model="paginationOptions.itemsPerPage" ng-change="reloadGrid()" style="width: auto;display: inline">
+                                    <option>5</option>
+                                    <option>10</option>
+                                    <option>50</option>
+                                </select>
+							</div>
+						</div>
+						<div class="col-md-5">
+							<div class="form-group">
+								<grid-pagination max-size="5" boundary-links="true" class="pagination-sm" total-items="paginationOptions.totalItems" ng-model="paginationOptions.currentPage" ng-change="reloadGrid()" items-per-page="paginationOptions.itemsPerPage"></grid-pagination>
+							</div>
+						</div>
+						</form>
+					</div>
+					<div class="form-edit" ng-hide="form">
+						<div class="row container">
+							<div class="col-md-12">
+								<h1>Datos Administrativos</h1>
+								<hr>
+							</div>
+						</div>
+						<form class="form-inline" name="myForm">
+							<div class="container-fluid">
+								<div class="row">
+									<div class="col-md-2">
+										<label for="nombre">Nombre:</label>
+									</div>
+									<div class="col-md-10">
+										<!-- <input id="nombre" type="text" ng-model="item.nombre" placeholder="Produto" required> -->
+										<input id="nombre" type="text" class="form-control" name="myName" ng-model="item.nombre" maxlength="50" required>
+										<span class="obligatorio" ng-show="myForm.myName.$touched && myForm.myName.$invalid">El Nombre es obligatorio.</span>
+									</div>
+									<div class="col-md-2">
+										<label for="pwd">Telefono:</label>
+									</div>
+									<div class="col-md-10">
+										<input type="text" class="form-control" name="myPhone" ng-model="item.telefono" class="" maxlength="50" required>
+										<span class="obligatorio" ng-show="myForm.myPhone.$touched && myForm.myPhone.$invalid">El telefono es obligatorio.</span>
+									</div>
+									<div class="col-md-2">
+										<label for="pwd">Descripcion:</label>
+									</div>
+									<span class="col-md-10">
+                                        <textarea id="nombre" class="form-control" name="myDescription" ng-model="item.descripcion" ng-trim="false" maxlength="1000" required></textarea>
+                                        <span class="obligatorio" ng-show="myForm.myDescription.$touched && myForm.myDescription.$invalid">La descripcion es obligatorio.<br></span>
+									<span>Restan {{1000 - item.descripcion.length}} caracteres</span>
+									</span>
+									<div class="col-md-2">
+										<label for="pwd">Especialidades:</label>
+									</div>
+									<div class="col-md-10">
+										<textarea id="nombre" class="form-control" name="especiality" ng-model="item.especialidades" ng-trim="false" maxlength="500"></textarea>
+										<span>Restan {{500 - item.especialidades.length}} caracteres</span>
+									</div>
+									<div class="col-md-2">
+										<label for="pwd">Dirreccion:</label>
+									</div>
+									<div class="col-md-10">
+										<input type="text" class="form-control" name="myDirection" ng-model="item.dirreccion" maxlength="200" required>
+										<span class="obligatorio" ng-show="myForm.myDirection.$touched && myForm.myDirection.$invalid">La dirrecion es obligatorio.</span>
+									</div>
+									<div class="col-md-2">
+										<label for="pwd">Horario de Atencion:</label>
+									</div>
+									<div class="col-md-9">
+										<input name="myDateFrom" class="form-control time" type="text" ng-model="item.horarioDesde" style="display: inline"  required> a
+										<input name="myDateUntil" class="form-control time" type="text" ng-model="item.horarioHasta" class="" style="display: inline;margin-top:7px" required>
+										<!--<span ng-show="myForm.myDateFrom.$touched && myForm.myDateFrom.$invalid">El horario Desde es obligatorio.</span><br>
+                           <span ng-show="myForm.myDateUntil.$touched && myForm.myDateUntil.$invalid">El horario Hasta es obligatorio.</span>-->
+									</div>
+									<div class="col-md-6">
+										<div class="row">
+											<h3 class="border col-md-11">Contacto Administrativo</h3>
+											<br>
+											<div class="col-md-3">
+												<label for="nombre">Nombre:</label>
+											</div>
+											<div class="col-md-9">
+												<input id="nombre" class="form-control" name="namelastADM" type="text" ng-model="item.namelastADM" maxlength="200" required>
+												<span class="obligatorio" ng-show="myForm.namelastADM.$touched && myForm.namelastADM.$invalid">El nombre es obligatorio.</span>
+											</div>
+											<br>
+											<div class="col-md-3">
+												<label for="pwd">Apellido:</label>
+											</div>
+											<div class="col-md-9">
+												<input type="text" class="form-control" name="mySerNameADM" ng-model="item.mySerNameADM" maxlength="200" required>
+												<span class="obligatorio" ng-show="myForm.mySerNameADM.$touched && myForm.mySerNameADM.$invalid">El apellido es obligatorio.</span>
+											</div>
+											<div class="col-md-3">
+												<label for="pwd">Telefono:</label>
+											</div>
+											<div class="col-md-9">
+												<input type="text" class="form-control" name="myphoneADM" ng-model="item.myphoneADM" maxlength="100" required>
+												<span class="obligatorio" ng-show="myForm.myphoneADM.$touched && myForm.myphoneADM.$invalid">El telefono es obligatorio.</span>
+											</div>
+											<br>
+											<div class="col-md-3">
+												<label for="pwd">E-Mail:</label>
+											</div>
+											<div class="col-md-9">
+												<input type="email" class="form-control" name="emailADM" ng-model="item.emailADM" maxlength="100" required>
+												<span class="obligatorio" ng-show="myForm.emailADM.$touched && myForm.emailADM.$invalid">El e-mail es obligatorio.</span>
+												<span class="obligatorio" ng-show="myForm.emailADM.$error.email"> Email no valido</span>
+											</div>
+											<br>
+										</div>
+									</div>
+									<div class="col-md-6">
+										<div class="row">
+											<h3 class="border col-md-11">Contacto Comercial</h3>
+											<div class="col-md-12 row">
+												<input type="checkbox" ng-model="myVar" ng-checked="item.checkidem" ng-model="item.checkidem"> <span style="margin-left: 2px;margin-top:-5px"> Idem Contacto Administrativo</span>
+											</div>
+											<br>
+											<div class="col-md-3">
+												<label for="nombre">Nombre:</label>
+											</div>
+											<div class="col-md-9">
+												<input id="nombre" class="form-control" name="namelast" type="text" ng-model="item.namelast" maxlength="200" ng-required="myVar">
+												<span class="obligatorio" ng-show="myForm.namelast.$touched && myForm.namelast.$invalid">El nombre es obligatorio.</span>
+											</div>
+											<br>
+											<div class="col-md-3">
+												<label for="pwd">Apellido:</label>
+											</div>
+											<div class="col-md-9">
+												<input type="text" class="form-control" name="mySerNameCOM" ng-model="item.mySerNameCOM" maxlength="200" ng-required="myVar">
+												<span class="obligatorio" ng-show="myForm.mySerNameCOM.$touched && myForm.mySerNameCOM.$invalid">El apellido es obligatorio.</span>
+											</div>
+											<br>
+											<div class="col-md-3">
+												<label for="pwd">Telefono:</label>
+											</div>
+											<div class="col-md-9">
+												<input type="text" class="form-control" name="myphoneCOM" ng-model="item.myphoneCOM" maxlength="100" ng-required="myVar">
+												<span class="obligatorio" ng-show="myForm.myphoneCOM.$touched && myForm.myphoneCOM.$invalid">El telefono es obligatorio.</span>
+											</div>
+											<br>
+											<div class="col-md-3">
+												<label for="pwd">E-Mail:</label>
+											</div>
+											<div class="col-md-9">
+												<input type="email" class="form-control" name="emailCOM" ng-model="item.emailCOM" maxlength="100" ng-required="myVar">
+												<span class="obligatorio" ng-show="myForm.emailCOM.$touched && myForm.emailCOM.$invalid">El e-mail es obligatorio.</span>
+												<span class="obligatorio" ng-show="myForm.emailCOM.$error.email"> Email no valido</span>
+											</div>
+										</div>
+									</div>
+									<div class="col-md-12 text-right">
+										<button ng-hide="edit" class="btn btn-success" ng-disabled="myForm.$invalid" ng-click="adicionaItem()">
+                        <i class="icon-plus icon-white"></i> Confirmar
+                        </button>
+										<button ng-show="edit" class="btn btn-success" ng-disabled="myForm.$invalid" ng-click="applyChanges()">
+                        <i class="icon-ok icon-white"></i> Modificar
+                        </button>
+										<button class="btn btn-danger" ng-click="CancelarItem()">
+                        <i class="fa fa-times" aria-hidden="true"></i> Cancelar
+                        </button>
+									</div>
+								</div>
+							</div>
+						</form>
+					</div>
+				</div>
+	</body>
+	<script src="assets/js/jquery.min.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular.min.js"></script>
+	<!-- Data Grid Angular -->
+	<script src="https://angular-ui.github.io/bootstrap/ui-bootstrap-tpls-0.14.3.js"></script>
+	<script src="assets/js/pagination.js"></script>
+	<script src="https://angular-data-grid.github.io/dist/dataGrid.js"></script>
+	<!-- Toastr -->
+	<script src="assets/js/toastr.min.js"></script>
+	<!-- Boostrap Time Picker -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-material-design/0.5.10/js/ripples.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-material-design/0.5.10/js/material.min.js"></script>
+	<script type="text/javascript" src="http://momentjs.com/downloads/moment-with-locales.min.js"></script>
+
+	<script type="text/javascript" src="assets/js/boostrap-time/js/bootstrap-material-datetimepicker.js"></script>
+	<script src="app/controllers.js"></script>
+	<script>
+		$(document).ready(function() {
+			$(".scroll").on('click',function() {
+				$('html,body').animate({
+					scrollTop: $(".form-edit").offset().top - 85
+				}, 'slow');
+			});
+			$('.time').bootstrapMaterialDatePicker({
+				date: false,
+				shortTime: false,
+				format: 'HH:mm'
+			});
+			$.material.init()
+		});
+	</script>
+
+</html>
